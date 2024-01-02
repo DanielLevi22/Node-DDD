@@ -19,7 +19,7 @@ describe('Create question', () => {
     })
   
     expect(question.id).toBeTruthy()
-    expect(question.title).toEqual('Pergunta 1')
+    expect(inMemoryQuestionsRepository.items[0].id).toEqual(question.id)
   
   })
 })

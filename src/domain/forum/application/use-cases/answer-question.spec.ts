@@ -21,7 +21,7 @@ describe('Create Answer', () => {
     })
   
     expect(answer.id).toBeTruthy()
-    expect(answer.content).toEqual('texto qualquer')
+    expect(inMemoryAnswersRepository.items[0].content).toEqual('texto qualquer')
 
   
   })
