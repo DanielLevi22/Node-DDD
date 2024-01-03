@@ -23,6 +23,10 @@ async  findBySlug(slug: string){
 async create(question: Question) {
     this.items.push(question);
 }
+async save(question: Question): Promise<void> {
+  const itemIndex = this.items.findIndex( item => item.id === question.id)
+    this.items[itemIndex] = question
+}
 
  async delete(question: Question): Promise<void> {
     const itemIndex = this.items.findIndex( item => item.id === question.id)
