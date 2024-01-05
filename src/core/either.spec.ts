@@ -1,4 +1,4 @@
-import { Either, Right, left, right } from "./either"
+import { Either,  left, right } from "./either"
 
 
 function doSomething(shouldSuccess:boolean): Either<string, number> {
