@@ -19,11 +19,11 @@ describe('Fetch Questions Comment', () => {
     await inMemoryQuestionsCommentsRepository.create(makeQuestionComment({questionId: new UniqueEntityID('question-1')}))
     await inMemoryQuestionsCommentsRepository.create(makeQuestionComment({questionId: new UniqueEntityID('question-1')}))
     await inMemoryQuestionsCommentsRepository.create(makeQuestionComment({questionId: new UniqueEntityID('question-1')}))
-    const { questionsComments } = await sut.execute({
+    const result = await sut.execute({
       questionId: 'question-1',
       page: 1
     })
-    expect(questionsComments).toHaveLength(3)
+    expect(result.value?.questionsComments).toHaveLength(3)
   })
 
   it('should be able to fetch paginated questions comment', async () => {
@@ -33,11 +33,11 @@ describe('Fetch Questions Comment', () => {
     }
 
 
-    const { questionsComments } = await sut.execute({
+    const result = await sut.execute({
       questionId: 'question-1',
       page: 2
     })
-    expect(questionsComments).toHaveLength(2)
+    expect(result.value?.questionsComments).toHaveLength(2)
   })
 
 })

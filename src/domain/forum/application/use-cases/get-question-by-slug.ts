@@ -8,9 +8,12 @@ interface GetQuestionBySlugUseCaseRequest {
  slug: string;
 }
 
-type GetQuestionBySlugUseCaseResponse = Either<ResourceNotFoundError,{
+type GetQuestionBySlugUseCaseResponse = Either<
+  ResourceNotFoundError,
+{
   question: Question;
-}> 
+}
+> 
 
 
 export class GetQuestionBySlugUseCase {
@@ -24,7 +27,7 @@ export class GetQuestionBySlugUseCase {
     const question = await this.questionsRepository.findBySlug(slug)
 
     if(!question) {
-    return left(new ResourceNotFoundError())
+    return left( new ResourceNotFoundError())
     }
 
 
