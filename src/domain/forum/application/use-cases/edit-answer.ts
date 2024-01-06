@@ -3,12 +3,17 @@ import { Answer } from "../../enterprise/entities/answer";
 import { AnswersRepository } from "../repositories/answers-repository";
 import { ResourceNotFoundError } from "./errors/resource-not-found";
 import { NotAllowedError } from "./errors/not-allowed-error";
+import { AnswerAttachment } from "../../enterprise/entities/answer-attachment";
+import { UniqueEntityID } from "@/core/entities/unique-entity-id";
+import { AnswerAttachmentList } from "../../enterprise/entities/answer-attachment-list";
+import { AnswerAttachmentsRepository } from "../repositories/answer-attachements-repopsitory";
 
 
 interface EditAnswerUseCaseRequest {
   authorId: string
   answerId: string
   content: string
+  attachmentsIds: string[]
 }
 
 type EditAnswerUseCaseResponse = Either<ResourceNotFoundError | NotAllowedError,
@@ -20,11 +25,13 @@ type EditAnswerUseCaseResponse = Either<ResourceNotFoundError | NotAllowedError,
 export class EditAnswerUseCase {
 
   constructor(
-    private AnswersRepository: AnswersRepository
-  ) {}
-  async execute({authorId,content,answerId}: EditAnswerUseCaseRequest): Promise <EditAnswerUseCaseResponse> {
+    private answersRepository: AnswersRepository,
+    private answersAttachmentsRepository: AnswerAttachmentsRepository,
 
-    const answer = await this.AnswersRepository.findById(answerId);
+  ) {}
+  async execute({authorId,content,answerId,attachmentsIds}: EditAnswerUseCaseRequest): Promise <EditAnswerUseCaseResponse> {
+
+    const answer = await this.answersRepository.findById(answerId);
 
     if(!answer) {
     return left(new ResourceNotFoundError())
@@ -35,9 +42,24 @@ export class EditAnswerUseCase {
     }
 
 
+    const currentAnswerAttachments = await this.answersAttachmentsRepository.findManyByAnswerId(answerId)
+    const answerAttachmentsList = new AnswerAttachmentList(currentAnswerAttachments)
+
+    const answerAttachment = attachmentsIds.map( attachmentId => {
+      return AnswerAttachment.create({
+         attachmentId: new UniqueEntityID(attachmentId),
+         answerId: answer.id
+      })
+    })
+
+
+
+    answerAttachmentsList.update(answerAttachment)
+    answer.attachments = answerAttachmentsList
+
     answer.content = content
 
-    await this.AnswersRepository.save(answer)
+    await this.answersRepository.save(answer)
     return right({
       answer
     })

@@ -3,13 +3,17 @@ import { makeQuestion } from 'test/factories/make-question'
 import { EditQuestionUseCase } from './edit-question'
 import { UniqueEntityID } from '@/core/entities/unique-entity-id'
 import { NotAllowedError } from './errors/not-allowed-error'
+import { InMemoryQuestionAttachmentsRepository } from 'test/repositories/in-question-attachments-repository'
+import { makeQuestionAttachment } from 'test/factories/make-question-attachment'
 
 let inMemoryQuestionsRepository:InMemoryQuestionsRepository
+let inMemoryQuestionAttachmentsRepository:InMemoryQuestionAttachmentsRepository
 let  sut: EditQuestionUseCase
 describe('Edit a Question', () => {
   beforeEach(() => {
-  inMemoryQuestionsRepository = new InMemoryQuestionsRepository()
-  sut = new EditQuestionUseCase(inMemoryQuestionsRepository)
+  inMemoryQuestionAttachmentsRepository= new InMemoryQuestionAttachmentsRepository()
+  inMemoryQuestionsRepository = new InMemoryQuestionsRepository(inMemoryQuestionAttachmentsRepository)
+  sut = new EditQuestionUseCase(inMemoryQuestionsRepository,inMemoryQuestionAttachmentsRepository)
 
 })
   
@@ -20,12 +24,20 @@ describe('Edit a Question', () => {
     }, new UniqueEntityID('question-1'))
 
      await inMemoryQuestionsRepository.create(newQuestion)
-
+     inMemoryQuestionAttachmentsRepository.items.push(makeQuestionAttachment({
+      questionId: newQuestion.id,
+      attachmentId: new UniqueEntityID('1')
+     }),
+     makeQuestionAttachment({
+      questionId: newQuestion.id,
+      attachmentId: new UniqueEntityID('2')
+     }))
   	 await sut.execute({
       authorId:'author-1',
       title: 'Pergunta test',
       content: 'Content Teste',
       questionId: newQuestion.id.toString(),
+      attachmentsIds: ['1', '3']
     })
 
     expect(inMemoryQuestionsRepository.items[0]).toMatchObject(
@@ -33,6 +45,11 @@ describe('Edit a Question', () => {
       title: 'Pergunta test',
       content: 'Content Teste',
      })
+     expect(inMemoryQuestionsRepository.items[0].attachments.currentItems).toHaveLength(2)
+     expect(inMemoryQuestionsRepository.items[0].attachments.currentItems).toEqual([
+       expect.objectContaining({ attachmentId: new UniqueEntityID('1') }),
+       expect.objectContaining({ attachmentId: new UniqueEntityID('3') },)
+     ])
   
   })
 
@@ -49,6 +66,7 @@ describe('Edit a Question', () => {
       title: 'Pergunta test',
       content: 'Content Teste',
       questionId: newQuestion.id.toString(),
+      attachmentsIds: []
      })
      
      expect(result.isLeft()).toBe(true)
