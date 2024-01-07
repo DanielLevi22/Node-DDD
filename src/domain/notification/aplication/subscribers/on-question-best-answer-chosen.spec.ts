@@ -1,5 +1,4 @@
 import { makeAnswer } from "test/factories/make-answer"
-import { OnAnswerCreated } from "./on-answer-created"
 import { InMemoryAnswersRepository } from "test/repositories/in-memory-answers-repository"
 import { InMemoryAnswerAttachmentsRepository } from "test/repositories/in-answer-attachments-repository copy"
 import { InMemoryQuestionsRepository } from "test/repositories/in-memory-questions-repository"
@@ -9,6 +8,7 @@ import { InMemoryNotificationsRepository } from "test/repositories/in-mememory-n
 import { makeQuestion } from "test/factories/make-question"
 import { SpyInstance } from "vitest"
 import { waitFor } from "test/ultils/wait-for"
+import { OnQuestionBestAnswerChosen } from "./on-question-best-answer-chosen"
 
 
 let sendNotificationExecuteSpy:SpyInstance<
@@ -22,7 +22,7 @@ let inMemoryAnswersRepository:InMemoryAnswersRepository
 let inMemoryAnswerAttachmentsRepository:InMemoryAnswerAttachmentsRepository
 let inMemoryNotificationsRepository: InMemoryNotificationsRepository
 let sendNotificationUseCase: SendNotificationUseCase
-describe('On Answer Created', () => {
+describe('On question Best Answer Chosen ', () => {
 beforeEach(() => {
   inMemoryQuestionAttachmentsRepository = new InMemoryQuestionAttachmentsRepository()
   inMemoryQuestionsRepository = new InMemoryQuestionsRepository(inMemoryQuestionAttachmentsRepository)
@@ -31,20 +31,25 @@ beforeEach(() => {
   inMemoryNotificationsRepository = new InMemoryNotificationsRepository()
   sendNotificationUseCase = new SendNotificationUseCase(inMemoryNotificationsRepository)
   sendNotificationExecuteSpy = vi.spyOn(sendNotificationUseCase, 'execute')
-  new OnAnswerCreated(
-    inMemoryQuestionsRepository,
+  new OnQuestionBestAnswerChosen(
+    inMemoryAnswersRepository,
     sendNotificationUseCase
   )
 })
-  it('should send notification when the answer is created', async () => {
+  it('should send notification when the topic has new best answer  chosen', async () => {
     const question = makeQuestion()
     const answer = makeAnswer({questionId: question.id})
 
-    await  inMemoryQuestionsRepository.create(question)
+    await inMemoryQuestionsRepository.create(question)
     await inMemoryAnswersRepository.create(answer)
 
-    await waitFor(() => {
+    question.bestAnswerId = answer.id
+    
+    await inMemoryQuestionsRepository.save(question)
+    
 
+
+    await waitFor(() => {
       expect(sendNotificationExecuteSpy).toHaveBeenCalled()
     })
     
