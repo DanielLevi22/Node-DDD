@@ -6,7 +6,7 @@ export abstract class AggregateRoot<Props> extends Entity<Props>{
   private _domainEvents: DomainEvent[] = []
 
   get domainEvents(): DomainEvent[] {
-    return this.domainEvents
+    return this._domainEvents
   }
 
   protected addDomainEvent(domainEvent: DomainEvent): void {
